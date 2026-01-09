@@ -1,0 +1,13 @@
+# Development override - only runs database services
+# Use: docker-compose -f docker/docker-compose.yml -f docker/docker-compose.dev.yml up -d
+
+version: '3.8'
+
+services:
+  postgres:
+    ports:
+      - "5432:5432"
+
+  redis:
+    ports:
+      - "6379:6379"

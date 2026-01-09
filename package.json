@@ -1,0 +1,43 @@
+{
+  "name": "polymarket-copy-trader",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Polymarket copy-trading bot with real-time dashboard",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "start": "turbo run start",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "test": "turbo run test",
+    "clean": "turbo run clean && rimraf node_modules",
+    "db:migrate": "pnpm --filter backend prisma migrate dev",
+    "db:push": "pnpm --filter backend prisma db push",
+    "db:generate": "pnpm --filter backend prisma generate",
+    "db:studio": "pnpm --filter backend prisma studio",
+    "docker:up": "docker-compose -f docker/docker-compose.yml up -d",
+    "docker:down": "docker-compose -f docker/docker-compose.yml down",
+    "docker:logs": "docker-compose -f docker/docker-compose.yml logs -f",
+    "docker:prod:build": "docker compose -f docker/docker-compose.prod.yml build",
+    "docker:prod:up": "docker compose -f docker/docker-compose.prod.yml up -d",
+    "docker:prod:down": "docker compose -f docker/docker-compose.prod.yml down",
+    "docker:prod:logs": "docker compose -f docker/docker-compose.prod.yml logs -f",
+    "docker:dev:up": "docker compose -f docker/docker-compose.prod.yml -f docker/docker-compose.override.yml up -d",
+    "docker:dev:down": "docker compose -f docker/docker-compose.prod.yml -f docker/docker-compose.override.yml down",
+    "docker:dev:logs": "docker compose -f docker/docker-compose.prod.yml -f docker/docker-compose.override.yml logs -f"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "prettier": "^3.1.0",
+    "rimraf": "^5.0.5",
+    "turbo": "^2.0.0",
+    "typescript": "^5.3.0"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}

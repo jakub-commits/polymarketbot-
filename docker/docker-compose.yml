@@ -1,0 +1,113 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: polymarket_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-polymarket}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-polymarket_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-polymarket_bot}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-polymarket}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - polymarket_network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: polymarket_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_secret}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-redis_secret}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - polymarket_network
+
+  # Backend API
+  backend:
+    build:
+      context: ../
+      dockerfile: apps/backend/Dockerfile
+    container_name: polymarket_backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 3001
+      DATABASE_URL: postgresql://${POSTGRES_USER:-polymarket}:${POSTGRES_PASSWORD:-polymarket_secret}@postgres:5432/${POSTGRES_DB:-polymarket_bot}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_secret}@redis:6379
+      # Polymarket config
+      POLYMARKET_NETWORK: ${POLYMARKET_NETWORK:-mainnet}
+      POLYMARKET_CLOB_URL: ${POLYMARKET_CLOB_URL:-https://clob.polymarket.com}
+      POLYMARKET_GAMMA_URL: ${POLYMARKET_GAMMA_URL:-https://gamma-api.polymarket.com}
+      # Wallet config
+      BOT_WALLET_ADDRESS: ${BOT_WALLET_ADDRESS}
+      BOT_WALLET_ENCRYPTED_KEY: ${BOT_WALLET_ENCRYPTED_KEY}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      # API credentials
+      POLYMARKET_API_KEY: ${POLYMARKET_API_KEY}
+      POLYMARKET_API_SECRET: ${POLYMARKET_API_SECRET}
+      POLYMARKET_API_PASSPHRASE: ${POLYMARKET_API_PASSPHRASE}
+      # Frontend URL for CORS
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+    ports:
+      - "${BACKEND_PORT:-3001}:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - polymarket_network
+    volumes:
+      - backend_logs:/app/logs
+    profiles:
+      - full
+
+  # Frontend
+  frontend:
+    build:
+      context: ../
+      dockerfile: apps/frontend/Dockerfile
+    container_name: polymarket_frontend
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001/api}
+      NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-ws://localhost:3001}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      - backend
+    networks:
+      - polymarket_network
+    profiles:
+      - full
+
+volumes:
+  postgres_data:
+    name: polymarket_postgres_data
+  redis_data:
+    name: polymarket_redis_data
+  backend_logs:
+    name: polymarket_backend_logs
+
+networks:
+  polymarket_network:
+    name: polymarket_network
+    driver: bridge

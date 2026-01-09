@@ -1,0 +1,138 @@
+# =============================================================================
+# Polymarket Copy Trading Bot - Development Override
+# Override production settings for local development
+# Usage: docker compose -f docker/docker-compose.prod.yml -f docker/docker-compose.override.yml up
+# =============================================================================
+
+version: '3.8'
+
+services:
+  # ---------------------------------------------------------------------------
+  # Disable nginx in development (access services directly)
+  # ---------------------------------------------------------------------------
+  nginx:
+    profiles:
+      - prod-only
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL - Expose port for local development tools
+  # ---------------------------------------------------------------------------
+  postgres:
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-polymarket}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-polymarket_bot}
+    # Less aggressive resource limits for development
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+
+  # ---------------------------------------------------------------------------
+  # Redis - Expose port for local development tools
+  # ---------------------------------------------------------------------------
+  redis:
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command: >
+      redis-server
+      --appendonly yes
+      --requirepass ${REDIS_PASSWORD:-dev_password}
+    # Less aggressive resource limits for development
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+  # ---------------------------------------------------------------------------
+  # Backend - Development mode with volume mounts
+  # ---------------------------------------------------------------------------
+  backend:
+    build:
+      context: ../
+      dockerfile: apps/backend/Dockerfile
+      target: deps
+    # Use local source code with hot reloading
+    volumes:
+      - ../apps/backend/src:/app/apps/backend/src:ro
+      - ../packages/shared/src:/app/packages/shared/src:ro
+      - backend_logs:/app/logs
+    command: >
+      sh -c "cd /app && pnpm --filter backend dev"
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: postgresql://${POSTGRES_USER:-polymarket}:${POSTGRES_PASSWORD:-dev_password}@postgres:5432/${POSTGRES_DB:-polymarket_bot}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-dev_password}@redis:6379
+      FRONTEND_URL: http://localhost:3000
+      LOG_LEVEL: debug
+      # Polymarket config (use test/sandbox if available)
+      POLYMARKET_NETWORK: ${POLYMARKET_NETWORK:-mainnet}
+      POLYMARKET_CLOB_URL: ${POLYMARKET_CLOB_URL:-https://clob.polymarket.com}
+      POLYMARKET_GAMMA_URL: ${POLYMARKET_GAMMA_URL:-https://gamma-api.polymarket.com}
+      # Optional: API credentials for development
+      POLYMARKET_API_KEY: ${POLYMARKET_API_KEY:-}
+      POLYMARKET_API_SECRET: ${POLYMARKET_API_SECRET:-}
+      POLYMARKET_API_PASSPHRASE: ${POLYMARKET_API_PASSPHRASE:-}
+      # Optional: Wallet for development
+      BOT_WALLET_ADDRESS: ${BOT_WALLET_ADDRESS:-}
+      BOT_WALLET_ENCRYPTED_KEY: ${BOT_WALLET_ENCRYPTED_KEY:-}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
+    ports:
+      - "${BACKEND_PORT:-3001}:3001"
+    # Less aggressive resource limits for development
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+    # Disable health check for faster startup in dev
+    healthcheck:
+      disable: true
+
+  # ---------------------------------------------------------------------------
+  # Frontend - Development mode with hot reloading
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ../
+      dockerfile: apps/frontend/Dockerfile
+      target: deps
+    # Use local source code with hot reloading
+    volumes:
+      - ../apps/frontend/src:/app/apps/frontend/src:ro
+      - ../apps/frontend/public:/app/apps/frontend/public:ro
+      - ../packages/shared/src:/app/packages/shared/src:ro
+    command: >
+      sh -c "cd /app && pnpm --filter frontend dev"
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      NEXT_PUBLIC_API_URL: http://localhost:3001/api
+      NEXT_PUBLIC_WS_URL: ws://localhost:3001
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      - backend
+    # Less aggressive resource limits for development
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+    # Disable health check for faster startup in dev
+    healthcheck:
+      disable: true
+
+# Development volumes (can be ephemeral)
+volumes:
+  postgres_data:
+    name: polymarket_postgres_data_dev
+  redis_data:
+    name: polymarket_redis_data_dev
+  backend_logs:
+    name: polymarket_backend_logs_dev

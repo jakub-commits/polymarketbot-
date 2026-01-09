@@ -1,0 +1,238 @@
+# =============================================================================
+# Polymarket Copy Trading Bot - Production Docker Compose
+# Full stack deployment with nginx reverse proxy, SSL, and resource limits
+# =============================================================================
+
+version: '3.8'
+
+services:
+  # ---------------------------------------------------------------------------
+  # Nginx Reverse Proxy
+  # Handles SSL termination, load balancing, and routing
+  # ---------------------------------------------------------------------------
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: polymarket_nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    networks:
+      - polymarket_network
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
+        reservations:
+          cpus: '0.1'
+          memory: 32M
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL Database
+  # Primary data store with persistence and health checks
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: polymarket_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      # Performance tuning for production
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - polymarket_network
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    # Only expose internally - no external port mapping in production
+    expose:
+      - "5432"
+
+  # ---------------------------------------------------------------------------
+  # Redis Cache
+  # Session storage, caching, and rate limiting
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: polymarket_redis
+    restart: always
+    command: >
+      redis-server
+      --appendonly yes
+      --requirepass ${REDIS_PASSWORD}
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --tcp-keepalive 300
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - polymarket_network
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    # Only expose internally
+    expose:
+      - "6379"
+
+  # ---------------------------------------------------------------------------
+  # Backend API
+  # Node.js Express server with Socket.IO for real-time updates
+  # ---------------------------------------------------------------------------
+  backend:
+    build:
+      context: ../
+      dockerfile: apps/backend/Dockerfile
+    image: polymarket-bot/backend:${VERSION:-latest}
+    container_name: polymarket_backend
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      # Database connection
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?connection_limit=10&pool_timeout=30
+      # Redis connection
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      # Polymarket configuration
+      POLYMARKET_NETWORK: ${POLYMARKET_NETWORK}
+      POLYMARKET_CLOB_URL: ${POLYMARKET_CLOB_URL}
+      POLYMARKET_GAMMA_URL: ${POLYMARKET_GAMMA_URL}
+      # API credentials
+      POLYMARKET_API_KEY: ${POLYMARKET_API_KEY}
+      POLYMARKET_API_SECRET: ${POLYMARKET_API_SECRET}
+      POLYMARKET_API_PASSPHRASE: ${POLYMARKET_API_PASSPHRASE}
+      # Wallet configuration
+      BOT_WALLET_ADDRESS: ${BOT_WALLET_ADDRESS}
+      BOT_WALLET_ENCRYPTED_KEY: ${BOT_WALLET_ENCRYPTED_KEY}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      # CORS - Frontend URL through nginx
+      FRONTEND_URL: ${FRONTEND_URL:-https://localhost}
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - polymarket_network
+    volumes:
+      - backend_logs:/app/logs
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    # Only expose internally
+    expose:
+      - "3001"
+
+  # ---------------------------------------------------------------------------
+  # Frontend
+  # Next.js application served via standalone server
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ../
+      dockerfile: apps/frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api}
+        NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-wss://localhost}
+    image: polymarket-bot/frontend:${VERSION:-latest}
+    container_name: polymarket_frontend
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: "0.0.0.0"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - polymarket_network
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    # Only expose internally
+    expose:
+      - "3000"
+
+# -----------------------------------------------------------------------------
+# Volumes
+# Persistent data storage
+# -----------------------------------------------------------------------------
+volumes:
+  postgres_data:
+    name: polymarket_postgres_data
+    driver: local
+  redis_data:
+    name: polymarket_redis_data
+    driver: local
+  backend_logs:
+    name: polymarket_backend_logs
+    driver: local
+  nginx_logs:
+    name: polymarket_nginx_logs
+    driver: local
+
+# -----------------------------------------------------------------------------
+# Networks
+# Internal network for service communication
+# -----------------------------------------------------------------------------
+networks:
+  polymarket_network:
+    name: polymarket_network
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16

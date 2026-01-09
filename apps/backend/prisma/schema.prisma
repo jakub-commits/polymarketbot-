@@ -1,0 +1,369 @@
+// Polymarket Copy-Trading Bot Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== ENUMS ====================
+
+enum Network {
+  MAINNET
+  TESTNET
+}
+
+enum TraderStatus {
+  ACTIVE
+  PAUSED
+  DISABLED
+}
+
+enum TradeStatus {
+  PENDING
+  EXECUTED
+  PARTIALLY_FILLED
+  FAILED
+  PERMANENTLY_FAILED
+  CANCELLED
+}
+
+enum TradeSide {
+  BUY
+  SELL
+}
+
+enum PositionStatus {
+  OPEN
+  CLOSED
+  REDEEMED
+}
+
+enum OrderType {
+  MARKET
+  LIMIT
+  GTC
+  FOK
+}
+
+enum LogLevel {
+  DEBUG
+  INFO
+  WARN
+  ERROR
+}
+
+// ==================== CORE MODELS ====================
+
+/// Trader being monitored for copy trading
+model Trader {
+  id                String        @id @default(cuid())
+  walletAddress     String        @unique
+  name              String?
+  description       String?
+  status            TraderStatus  @default(ACTIVE)
+  network           Network       @default(MAINNET)
+
+  // Copy settings
+  copyEnabled       Boolean       @default(true)
+  allocationPercent Float         @default(10.0)
+  maxPositionSize   Float?
+  minTradeAmount    Float         @default(1.0)
+  slippageTolerance Float         @default(2.0)
+
+  // Risk settings
+  maxDrawdownPercent Float        @default(20.0)
+  stopLossPercent    Float?
+  takeProfitPercent  Float?
+
+  // Market filters
+  marketsWhitelist   String[]     @default([])
+  marketsBlacklist   String[]     @default([])
+
+  // Performance tracking (cached)
+  totalPnl          Float         @default(0)
+  unrealizedPnl     Float         @default(0)
+  realizedPnl       Float         @default(0)
+  winRate           Float         @default(0)
+  totalTrades       Int           @default(0)
+  profitableTrades  Int           @default(0)
+  peakBalance       Float         @default(0)
+
+  // Timestamps
+  addedAt           DateTime      @default(now())
+  lastSyncAt        DateTime?
+  lastTradeAt       DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // Relations
+  trades            Trade[]
+  positions         Position[]
+  snapshots         TraderSnapshot[]
+
+  @@index([status])
+  @@index([network])
+  @@index([walletAddress])
+}
+
+/// Trade executed by the bot (both source and copied trades)
+model Trade {
+  id                String        @id @default(cuid())
+
+  // External identifiers
+  externalId        String?       @unique
+  orderId           String?
+
+  // Trader reference
+  traderId          String
+  trader            Trader        @relation(fields: [traderId], references: [id], onDelete: Cascade)
+
+  // Market reference
+  marketId          String
+  market            Market        @relation(fields: [marketId], references: [id])
+
+  // Trade details
+  tokenId           String
+  outcome           String
+  side              TradeSide
+  orderType         OrderType     @default(MARKET)
+  status            TradeStatus   @default(PENDING)
+
+  // Amounts
+  requestedAmount   Float
+  executedAmount    Float?
+  price             Float
+  avgFillPrice      Float?
+  shares            Float?
+
+  // Costs
+  fee               Float         @default(0)
+  slippage          Float?
+
+  // Copy tracking
+  isSourceTrade     Boolean       @default(false)
+  sourceTraderId    String?
+  copiedFromId      String?
+
+  // Execution metadata
+  executedAt        DateTime?
+  failureReason     String?
+  retryCount        Int           @default(0)
+  nextRetryAt       DateTime?
+
+  // Timestamps
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([traderId])
+  @@index([marketId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([tokenId])
+  @@index([isSourceTrade])
+  @@index([nextRetryAt])
+}
+
+/// Position held by the bot
+model Position {
+  id                String          @id @default(cuid())
+
+  // References
+  traderId          String
+  trader            Trader          @relation(fields: [traderId], references: [id], onDelete: Cascade)
+  marketId          String
+  market            Market          @relation(fields: [marketId], references: [id])
+
+  // Position details
+  tokenId           String
+  outcome           String
+  side              TradeSide
+  status            PositionStatus  @default(OPEN)
+
+  // Amounts
+  shares            Float
+  avgEntryPrice     Float
+  currentPrice      Float?
+  totalCost         Float
+
+  // P&L
+  unrealizedPnl     Float           @default(0)
+  realizedPnl       Float           @default(0)
+
+  // Exit details
+  exitPrice         Float?
+  exitShares        Float?
+  closedAt          DateTime?
+
+  // Source tracking
+  isSourcePosition  Boolean         @default(false)
+  sourceWallet      String?
+
+  // Timestamps
+  openedAt          DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@unique([traderId, marketId, tokenId])
+  @@index([traderId])
+  @@index([marketId])
+  @@index([status])
+}
+
+/// Polymarket market (cached data)
+model Market {
+  id                String        @id @default(cuid())
+
+  // Polymarket identifiers
+  conditionId       String        @unique
+  questionId        String?
+  slug              String?
+
+  // Market details
+  question          String
+  description       String?
+  category          String?
+  endDate           DateTime?
+
+  // Outcomes
+  outcomes          String[]
+  outcomeTokenIds   String[]
+
+  // Current state
+  isActive          Boolean       @default(true)
+  isResolved        Boolean       @default(false)
+  winningOutcome    String?
+
+  // Prices (cached as JSON)
+  prices            Json?
+  volume24h         Float?
+  liquidity         Float?
+
+  // Metadata
+  imageUrl          String?
+
+  // Relations
+  trades            Trade[]
+  positions         Position[]
+
+  // Timestamps
+  lastPriceUpdate   DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([conditionId])
+  @@index([isActive])
+  @@index([category])
+  @@index([slug])
+}
+
+// ==================== ANALYTICS ====================
+
+/// Historical snapshot of trader performance
+model TraderSnapshot {
+  id                String        @id @default(cuid())
+
+  traderId          String
+  trader            Trader        @relation(fields: [traderId], references: [id], onDelete: Cascade)
+
+  // Snapshot data
+  totalPnl          Float
+  unrealizedPnl     Float
+  realizedPnl       Float
+  openPositions     Int
+  totalTrades       Int
+  winRate           Float
+  balance           Float?
+
+  // Timestamp
+  snapshotAt        DateTime      @default(now())
+
+  @@index([traderId])
+  @@index([snapshotAt])
+}
+
+/// Daily aggregated statistics
+model DailyStats {
+  id                String        @id @default(cuid())
+  date              DateTime      @db.Date
+
+  // Aggregate stats
+  totalPnl          Float         @default(0)
+  totalTrades       Int           @default(0)
+  successfulTrades  Int           @default(0)
+  failedTrades      Int           @default(0)
+  totalVolume       Float         @default(0)
+  totalFees         Float         @default(0)
+
+  // Timestamps
+  createdAt         DateTime      @default(now())
+
+  @@unique([date])
+  @@index([date])
+}
+
+// ==================== SYSTEM ====================
+
+/// Bot wallet configuration
+model BotWallet {
+  id                String        @id @default(cuid())
+
+  address           String        @unique
+  network           Network       @default(MAINNET)
+
+  // Balance tracking (cached)
+  usdcBalance       Float         @default(0)
+  lastBalanceCheck  DateTime?
+
+  // Status
+  isActive          Boolean       @default(true)
+
+  // Timestamps
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+}
+
+/// Key-value settings storage
+model Settings {
+  id                String        @id @default(cuid())
+  key               String        @unique
+  value             Json
+  description       String?
+
+  updatedAt         DateTime      @updatedAt
+}
+
+/// Activity/audit log
+model ActivityLog {
+  id                String        @id @default(cuid())
+
+  level             LogLevel      @default(INFO)
+  category          String
+  message           String
+  metadata          Json?
+
+  // Context references
+  traderId          String?
+  tradeId           String?
+  marketId          String?
+
+  // Timestamp
+  createdAt         DateTime      @default(now())
+
+  @@index([level])
+  @@index([category])
+  @@index([createdAt])
+  @@index([traderId])
+}
+
+/// API rate limit tracking
+model ApiRateLimit {
+  id                String        @id @default(cuid())
+  endpoint          String        @unique
+  requestCount      Int           @default(0)
+  windowStart       DateTime      @default(now())
+
+  @@index([endpoint])
+}
