@@ -27,7 +27,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-card border-r">
+    <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-background border-r border-border">
       {/* Logo */}
       <div className="flex h-16 items-center gap-2 px-6 border-b">
         <TrendingUp className="h-6 w-6 text-primary" />

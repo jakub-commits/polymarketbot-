@@ -17,13 +17,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <div className="flex min-h-screen">
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.className} min-h-screen bg-background antialiased`}>
+        <div className="relative flex min-h-screen">
+          {/* Fixed Sidebar */}
           <Sidebar />
-          <div className="flex-1 pl-64">
+
+          {/* Main Content Area */}
+          <div className="flex-1 flex flex-col ml-64">
             <Header />
-            <main className="p-6">{children}</main>
+            <main className="flex-1 p-6 overflow-auto">
+              {children}
+            </main>
           </div>
         </div>
       </body>
