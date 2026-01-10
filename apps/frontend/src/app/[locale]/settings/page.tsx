@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import useSWR from 'swr';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -55,6 +56,7 @@ const healthFetcher = async (url: string) => {
 };
 
 export default function SettingsPage() {
+  const t = useTranslations('settings');
   const { data: health, isLoading: statusLoading } = useSWR<HealthStatus>(
     '/health',
     healthFetcher,
@@ -114,9 +116,9 @@ export default function SettingsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold">Settings</h1>
+        <h1 className="text-3xl font-bold">{t('title')}</h1>
         <p className="text-muted-foreground">
-          Configure your bot and trading preferences
+          {t('subtitle')}
         </p>
       </div>
 
@@ -125,10 +127,10 @@ export default function SettingsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5" />
-            Bot Status
+            {t('botStatus.title')}
           </CardTitle>
           <CardDescription>
-            Current connection and wallet status
+            {t('botStatus.subtitle')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -142,21 +144,21 @@ export default function SettingsPage() {
                 <div className="flex items-center gap-3">
                   <Wallet className="h-5 w-5 text-muted-foreground" />
                   <div>
-                    <p className="font-medium">Database</p>
+                    <p className="font-medium">{t('botStatus.database')}</p>
                     <p className="text-sm text-muted-foreground">
-                      {health?.services.database.latency}ms latency
+                      {health?.services.database.latency}ms
                     </p>
                   </div>
                 </div>
                 {health?.services.database.status === 'healthy' ? (
                   <Badge variant="default" className="bg-green-500">
                     <CheckCircle2 className="h-3 w-3 mr-1" />
-                    Healthy
+                    {t('botStatus.healthy')}
                   </Badge>
                 ) : (
                   <Badge variant="destructive">
                     <AlertCircle className="h-3 w-3 mr-1" />
-                    Error
+                    {t('botStatus.error')}
                   </Badge>
                 )}
               </div>
@@ -165,21 +167,21 @@ export default function SettingsPage() {
                 <div className="flex items-center gap-3">
                   <Shield className="h-5 w-5 text-muted-foreground" />
                   <div>
-                    <p className="font-medium">Redis</p>
+                    <p className="font-medium">{t('botStatus.redis')}</p>
                     <p className="text-sm text-muted-foreground">
-                      {health?.services.redis.latency}ms latency
+                      {health?.services.redis.latency}ms
                     </p>
                   </div>
                 </div>
                 {health?.services.redis.status === 'healthy' ? (
                   <Badge variant="default" className="bg-green-500">
                     <CheckCircle2 className="h-3 w-3 mr-1" />
-                    Healthy
+                    {t('botStatus.healthy')}
                   </Badge>
                 ) : (
                   <Badge variant="destructive">
                     <AlertCircle className="h-3 w-3 mr-1" />
-                    Error
+                    {t('botStatus.error')}
                   </Badge>
                 )}
               </div>
@@ -188,7 +190,7 @@ export default function SettingsPage() {
                 <div className="flex items-center gap-3">
                   <Key className="h-5 w-5 text-muted-foreground" />
                   <div>
-                    <p className="font-medium">Polymarket API</p>
+                    <p className="font-medium">{t('botStatus.polymarket')}</p>
                     <p className="text-sm text-muted-foreground">
                       v{health?.version}
                     </p>
@@ -197,12 +199,12 @@ export default function SettingsPage() {
                 {health?.services.polymarket.status === 'healthy' ? (
                   <Badge variant="default" className="bg-green-500">
                     <CheckCircle2 className="h-3 w-3 mr-1" />
-                    Connected
+                    {t('botStatus.connected')}
                   </Badge>
                 ) : (
                   <Badge variant="destructive">
                     <AlertCircle className="h-3 w-3 mr-1" />
-                    Disconnected
+                    {t('botStatus.disconnected')}
                   </Badge>
                 )}
               </div>
@@ -210,11 +212,11 @@ export default function SettingsPage() {
               <div className="md:col-span-3 p-4 rounded-lg border bg-muted/50">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">System Status</p>
+                    <p className="text-sm text-muted-foreground">{t('botStatus.systemStatus')}</p>
                     <p className="text-lg font-semibold capitalize">{health?.status}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-muted-foreground">Uptime</p>
+                    <p className="text-sm text-muted-foreground">{t('botStatus.uptime')}</p>
                     <p className="text-lg font-semibold">
                       {health?.uptime ? Math.floor(health.uptime / 60) : 0} min
                     </p>
@@ -229,17 +231,17 @@ export default function SettingsPage() {
       {/* Copy Trading Settings */}
       <Card>
         <CardHeader>
-          <CardTitle>Copy Trading</CardTitle>
+          <CardTitle>{t('copyTrading.title')}</CardTitle>
           <CardDescription>
-            Configure how trades are copied from tracked traders
+            {t('copyTrading.subtitle')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Enable Copy Trading</Label>
+              <Label>{t('copyTrading.enabled')}</Label>
               <p className="text-sm text-muted-foreground">
-                Automatically copy trades from active traders
+                {t('copyTrading.enabledDesc')}
               </p>
             </div>
             <Switch
@@ -254,7 +256,7 @@ export default function SettingsPage() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="maxPositionSize">Max Position Size ($)</Label>
+              <Label htmlFor="maxPositionSize">{t('copyTrading.maxPositionSize')}</Label>
               <Input
                 id="maxPositionSize"
                 type="number"
@@ -264,12 +266,12 @@ export default function SettingsPage() {
                 }
               />
               <p className="text-xs text-muted-foreground">
-                Maximum amount per single position
+                {t('copyTrading.maxPositionSizeDesc')}
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="maxDailyTrades">Max Daily Trades</Label>
+              <Label htmlFor="maxDailyTrades">{t('copyTrading.maxDailyTrades')}</Label>
               <Input
                 id="maxDailyTrades"
                 type="number"
@@ -279,12 +281,12 @@ export default function SettingsPage() {
                 }
               />
               <p className="text-xs text-muted-foreground">
-                Maximum trades to execute per day
+                {t('copyTrading.maxDailyTradesDesc')}
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="slippageTolerance">Slippage Tolerance (%)</Label>
+              <Label htmlFor="slippageTolerance">{t('copyTrading.slippageTolerance')}</Label>
               <Input
                 id="slippageTolerance"
                 type="number"
@@ -295,12 +297,12 @@ export default function SettingsPage() {
                 }
               />
               <p className="text-xs text-muted-foreground">
-                Maximum acceptable price slippage
+                {t('copyTrading.slippageToleranceDesc')}
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="minTradeAmount">Min Trade Amount ($)</Label>
+              <Label htmlFor="minTradeAmount">{t('copyTrading.minTradeAmount')}</Label>
               <Input
                 id="minTradeAmount"
                 type="number"
@@ -310,7 +312,7 @@ export default function SettingsPage() {
                 }
               />
               <p className="text-xs text-muted-foreground">
-                Minimum trade size to copy
+                {t('copyTrading.minTradeAmountDesc')}
               </p>
             </div>
           </div>
@@ -322,19 +324,19 @@ export default function SettingsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Bell className="h-5 w-5" />
-            Notifications
+            {t('notifications.title')}
           </CardTitle>
           <CardDescription>
-            Configure alerts and notifications
+            {t('notifications.subtitle')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>Trade Executed</Label>
+                <Label>{t('notifications.tradeExecuted')}</Label>
                 <p className="text-sm text-muted-foreground">
-                  Notify when a trade is successfully executed
+                  {t('notifications.tradeExecutedDesc')}
                 </p>
               </div>
               <Switch
@@ -347,9 +349,9 @@ export default function SettingsPage() {
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>Trade Failed</Label>
+                <Label>{t('notifications.tradeFailed')}</Label>
                 <p className="text-sm text-muted-foreground">
-                  Notify when a trade fails to execute
+                  {t('notifications.tradeFailedDesc')}
                 </p>
               </div>
               <Switch
@@ -362,9 +364,9 @@ export default function SettingsPage() {
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>Daily Summary</Label>
+                <Label>{t('notifications.dailySummary')}</Label>
                 <p className="text-sm text-muted-foreground">
-                  Receive a daily performance summary
+                  {t('notifications.dailySummaryDesc')}
                 </p>
               </div>
               <Switch
@@ -379,18 +381,18 @@ export default function SettingsPage() {
           <Separator />
 
           <div className="space-y-2">
-            <Label htmlFor="webhookUrl">Webhook URL (Optional)</Label>
+            <Label htmlFor="webhookUrl">{t('notifications.webhookUrl')}</Label>
             <Input
               id="webhookUrl"
               type="url"
-              placeholder="https://your-webhook-url.com/notify"
+              placeholder={t('notifications.webhookPlaceholder')}
               value={currentSettings?.notifications?.webhookUrl ?? ''}
               onChange={(e) =>
                 updateSetting('notifications', 'webhookUrl', e.target.value || undefined)
               }
             />
             <p className="text-xs text-muted-foreground">
-              Send notifications to a custom webhook endpoint (Discord, Slack, etc.)
+              {t('notifications.webhookUrlDesc')}
             </p>
           </div>
         </CardContent>
@@ -405,7 +407,7 @@ export default function SettingsPage() {
             ) : (
               <Save className="h-4 w-4 mr-2" />
             )}
-            Save Changes
+            {t('saveChanges')}
           </Button>
         </div>
       )}

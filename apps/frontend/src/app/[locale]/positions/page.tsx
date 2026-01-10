@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import useSWR from 'swr';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -51,6 +52,8 @@ const fetcher = async (url: string) => {
 };
 
 export default function PositionsPage() {
+  const t = useTranslations('positions');
+  const tCommon = useTranslations('common');
   const [selectedTraderId, setSelectedTraderId] = useState<string | undefined>(undefined);
   const { traders } = useTraderPerformance();
 
@@ -76,9 +79,9 @@ export default function PositionsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Open Positions</h1>
+          <h1 className="text-3xl font-bold">{t('title')}</h1>
           <p className="text-muted-foreground">
-            Monitor all active positions across traders
+            {t('subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -87,10 +90,10 @@ export default function PositionsPage() {
             onValueChange={(value) => setSelectedTraderId(value === 'all' ? undefined : value)}
           >
             <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Select trader" />
+              <SelectValue placeholder={t('selectTrader')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Traders</SelectItem>
+              <SelectItem value="all">{t('allTraders')}</SelectItem>
               {traders.map((trader) => (
                 <SelectItem key={trader.traderId} value={trader.traderId}>
                   {trader.name || trader.walletAddress.slice(0, 8)}
@@ -109,13 +112,13 @@ export default function PositionsPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">Total Value</p>
+              <p className="text-sm text-muted-foreground">{t('totalValue')}</p>
               <p className="text-2xl font-bold">${stats.totalValue.toFixed(2)}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">Unrealized P&L</p>
+              <p className="text-sm text-muted-foreground">{t('unrealizedPnl')}</p>
               <p className={cn(
                 'text-2xl font-bold',
                 stats.totalUnrealizedPnl >= 0 ? 'text-green-500' : 'text-red-500'
@@ -126,13 +129,13 @@ export default function PositionsPage() {
           </Card>
           <Card>
             <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">Total Positions</p>
+              <p className="text-sm text-muted-foreground">{t('totalPositions')}</p>
               <p className="text-2xl font-bold">{stats.totalPositions}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">Profitable</p>
+              <p className="text-sm text-muted-foreground">{t('profitable')}</p>
               <p className="text-2xl font-bold">
                 {stats.profitablePositions} / {stats.totalPositions}
               </p>
@@ -144,7 +147,7 @@ export default function PositionsPage() {
       {/* Positions Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Positions</CardTitle>
+          <CardTitle>{t('title')}</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -153,25 +156,25 @@ export default function PositionsPage() {
             </div>
           ) : error ? (
             <div className="h-[400px] flex items-center justify-center text-muted-foreground">
-              Failed to load positions
+              {tCommon('error')}
             </div>
           ) : !positions || positions.length === 0 ? (
             <div className="h-[200px] flex items-center justify-center text-muted-foreground">
-              No open positions
+              {t('noPositions')}
             </div>
           ) : (
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Market</TableHead>
-                    <TableHead>Trader</TableHead>
-                    <TableHead>Outcome</TableHead>
-                    <TableHead className="text-right">Shares</TableHead>
-                    <TableHead className="text-right">Avg Price</TableHead>
-                    <TableHead className="text-right">Current</TableHead>
-                    <TableHead className="text-right">Value</TableHead>
-                    <TableHead className="text-right">P&L</TableHead>
+                    <TableHead>{t('market')}</TableHead>
+                    <TableHead>{t('trader')}</TableHead>
+                    <TableHead>{t('outcome')}</TableHead>
+                    <TableHead className="text-right">{t('shares')}</TableHead>
+                    <TableHead className="text-right">{t('avgPrice')}</TableHead>
+                    <TableHead className="text-right">{t('currentPrice')}</TableHead>
+                    <TableHead className="text-right">{t('value')}</TableHead>
+                    <TableHead className="text-right">{t('pnl')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

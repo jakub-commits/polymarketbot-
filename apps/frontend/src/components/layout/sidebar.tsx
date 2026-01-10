@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { Link, usePathname } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
@@ -14,17 +14,19 @@ import {
 } from 'lucide-react';
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Traders', href: '/traders', icon: Users },
-  { name: 'Trades', href: '/trades', icon: TrendingUp },
-  { name: 'Positions', href: '/positions', icon: Wallet },
-  { name: 'Markets', href: '/markets', icon: BarChart3 },
-  { name: 'Analytics', href: '/analytics', icon: Activity },
-  { name: 'Settings', href: '/settings', icon: Settings },
-];
+  { key: 'dashboard', href: '/', icon: LayoutDashboard },
+  { key: 'traders', href: '/traders', icon: Users },
+  { key: 'trades', href: '/trades', icon: TrendingUp },
+  { key: 'positions', href: '/positions', icon: Wallet },
+  { key: 'markets', href: '/markets', icon: BarChart3 },
+  { key: 'analytics', href: '/analytics', icon: Activity },
+  { key: 'settings', href: '/settings', icon: Settings },
+] as const;
 
 export function Sidebar() {
   const pathname = usePathname();
+  const t = useTranslations('nav');
+  const tSidebar = useTranslations('sidebar');
 
   return (
     <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-background border-r border-border">
@@ -37,10 +39,11 @@ export function Sidebar() {
       {/* Navigation */}
       <nav className="flex flex-col gap-1 p-4">
         {navigation.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href ||
+            (item.href !== '/' && pathname.startsWith(item.href));
           return (
             <Link
-              key={item.name}
+              key={item.key}
               href={item.href}
               className={cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
@@ -50,7 +53,7 @@ export function Sidebar() {
               )}
             >
               <item.icon className="h-5 w-5" />
-              {item.name}
+              {t(item.key)}
             </Link>
           );
         })}
@@ -61,10 +64,10 @@ export function Sidebar() {
         <div className="rounded-lg bg-muted p-3">
           <div className="flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-sm font-medium">Bot Active</span>
+            <span className="text-sm font-medium">{tSidebar('botActive')}</span>
           </div>
           <p className="text-xs text-muted-foreground mt-1">
-            Monitoring 3 traders
+            {tSidebar('monitoring', { count: 3 })}
           </p>
         </div>
       </div>

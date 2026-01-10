@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import useSWR from 'swr';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -69,6 +70,8 @@ const marketsFetcher = async (url: string) => {
 };
 
 export default function MarketsPage() {
+  const t = useTranslations('markets');
+  const tCommon = useTranslations('common');
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<string>('all');
@@ -116,14 +119,14 @@ export default function MarketsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Markets</h1>
+          <h1 className="text-3xl font-bold">{t('title')}</h1>
           <p className="text-muted-foreground">
-            Browse and monitor Polymarket prediction markets
+            {t('subtitle')}
           </p>
         </div>
         <Button variant="outline" onClick={() => mutate()}>
           <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh
+          {tCommon('refresh')}
         </Button>
       </div>
 
@@ -134,7 +137,7 @@ export default function MarketsPage() {
             <div className="relative flex-1 min-w-[200px]">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search markets..."
+                placeholder={tCommon('search')}
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
@@ -145,25 +148,25 @@ export default function MarketsPage() {
             </div>
             <Select value={category} onValueChange={(v) => { setCategory(v); setPage(1); }}>
               <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Category" />
+                <SelectValue placeholder={t('category')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="politics">Politics</SelectItem>
-                <SelectItem value="sports">Sports</SelectItem>
-                <SelectItem value="crypto">Crypto</SelectItem>
-                <SelectItem value="entertainment">Entertainment</SelectItem>
-                <SelectItem value="science">Science</SelectItem>
+                <SelectItem value="all">{t('categories.all')}</SelectItem>
+                <SelectItem value="politics">{t('categories.politics')}</SelectItem>
+                <SelectItem value="sports">{t('categories.sports')}</SelectItem>
+                <SelectItem value="crypto">{t('categories.crypto')}</SelectItem>
+                <SelectItem value="entertainment">{t('categories.entertainment')}</SelectItem>
+                <SelectItem value="science">{t('categories.science')}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={status} onValueChange={(v) => { setStatus(v); setPage(1); }}>
               <SelectTrigger className="w-[130px]">
-                <SelectValue placeholder="Status" />
+                <SelectValue placeholder={tCommon('status')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="closed">Closed</SelectItem>
+                <SelectItem value="all">{tCommon('all')}</SelectItem>
+                <SelectItem value="active">{tCommon('active')}</SelectItem>
+                <SelectItem value="closed">{tCommon('closed')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -175,25 +178,25 @@ export default function MarketsPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">Total Markets</p>
+              <p className="text-sm text-muted-foreground">{t('totalMarkets')}</p>
               <p className="text-2xl font-bold">{data.total}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">Showing</p>
+              <p className="text-sm text-muted-foreground">{t('showing')}</p>
               <p className="text-2xl font-bold">{data.items.length}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">Page</p>
+              <p className="text-sm text-muted-foreground">{tCommon('page')}</p>
               <p className="text-2xl font-bold">{page} / {totalPages || 1}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">Per Page</p>
+              <p className="text-sm text-muted-foreground">{t('perPage')}</p>
               <p className="text-2xl font-bold">{limit}</p>
             </CardContent>
           </Card>
@@ -203,7 +206,7 @@ export default function MarketsPage() {
       {/* Markets Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Markets</CardTitle>
+          <CardTitle>{t('title')}</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -212,12 +215,12 @@ export default function MarketsPage() {
             </div>
           ) : error ? (
             <div className="h-[400px] flex items-center justify-center text-muted-foreground">
-              Failed to load markets
+              {tCommon('error')}
             </div>
           ) : !data || data.items.length === 0 ? (
             <div className="h-[200px] flex flex-col items-center justify-center text-muted-foreground">
-              <p>No markets found</p>
-              <p className="text-sm mt-1">Markets will appear here when traders are being tracked</p>
+              <p>{t('noMarkets')}</p>
+              <p className="text-sm mt-1">{t('noMarketsDesc')}</p>
             </div>
           ) : (
             <>
@@ -225,13 +228,13 @@ export default function MarketsPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="min-w-[300px]">Market</TableHead>
-                      <TableHead>Category</TableHead>
+                      <TableHead className="min-w-[300px]">{t('title')}</TableHead>
+                      <TableHead>{t('category')}</TableHead>
                       <TableHead className="text-center">Price</TableHead>
-                      <TableHead className="text-right">Volume</TableHead>
-                      <TableHead className="text-right">Liquidity</TableHead>
-                      <TableHead>End Date</TableHead>
-                      <TableHead className="text-center">Status</TableHead>
+                      <TableHead className="text-right">{t('volume')}</TableHead>
+                      <TableHead className="text-right">{t('liquidity')}</TableHead>
+                      <TableHead>{t('endDate')}</TableHead>
+                      <TableHead className="text-center">{tCommon('status')}</TableHead>
                       <TableHead></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -283,11 +286,11 @@ export default function MarketsPage() {
                           </TableCell>
                           <TableCell className="text-center">
                             {market.closed ? (
-                              <Badge variant="secondary">Closed</Badge>
+                              <Badge variant="secondary">{tCommon('closed')}</Badge>
                             ) : market.active ? (
-                              <Badge variant="default" className="bg-green-500">Active</Badge>
+                              <Badge variant="default" className="bg-green-500">{tCommon('active')}</Badge>
                             ) : (
-                              <Badge variant="outline">Inactive</Badge>
+                              <Badge variant="outline">{tCommon('paused')}</Badge>
                             )}
                           </TableCell>
                           <TableCell>
@@ -312,7 +315,7 @@ export default function MarketsPage() {
               {totalPages > 1 && (
                 <div className="flex items-center justify-between mt-4">
                   <p className="text-sm text-muted-foreground">
-                    Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, data.total)} of {data.total} markets
+                    {tCommon('showing')} {((page - 1) * limit) + 1} {tCommon('to')} {Math.min(page * limit, data.total)} {tCommon('of')} {data.total}
                   </p>
                   <div className="flex items-center gap-2">
                     <Button
@@ -324,7 +327,7 @@ export default function MarketsPage() {
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
                     <span className="text-sm">
-                      Page {page} of {totalPages}
+                      {tCommon('page')} {page} {tCommon('of')} {totalPages}
                     </span>
                     <Button
                       variant="outline"

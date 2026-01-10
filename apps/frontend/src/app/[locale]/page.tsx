@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   ConnectionStatus,
@@ -18,23 +19,24 @@ import {
 import { useDashboardStats } from '@/hooks/useDashboard';
 
 export default function DashboardPage() {
+  const t = useTranslations('dashboard');
   const { stats, isLoading } = useDashboardStats();
 
   const statCards = [
     {
-      title: 'Open Positions',
+      titleKey: 'openPositions',
       value: stats?.openPositions ?? '--',
       change: stats?.positionsChange ?? 0,
       icon: Wallet,
     },
     {
-      title: 'Active Traders',
+      titleKey: 'activeTraders',
       value: stats?.activeTraders ?? '--',
       change: 0,
       icon: Users,
     },
     {
-      title: "Today's Trades",
+      titleKey: 'todaysTrades',
       value: stats?.todaysTrades ?? '--',
       change: stats?.tradesChange ?? 0,
       icon: Activity,
@@ -46,9 +48,9 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <h1 className="text-3xl font-bold">{t('title')}</h1>
           <p className="text-muted-foreground">
-            Overview of your copy trading performance
+            {t('subtitle')}
           </p>
         </div>
         <ConnectionStatus />
@@ -64,9 +66,9 @@ export default function DashboardPage() {
 
         {/* Other Stats */}
         {statCards.map((stat) => (
-          <Card key={stat.title}>
+          <Card key={stat.titleKey}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
+              <CardTitle className="text-sm font-medium">{t(stat.titleKey)}</CardTitle>
               <stat.icon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -86,7 +88,6 @@ export default function DashboardPage() {
                     {stat.change > 0 ? '+' : ''}
                     {stat.change}
                   </span>
-                  {' from yesterday'}
                 </p>
               )}
             </CardContent>
@@ -111,7 +112,7 @@ export default function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>P&L Over Time</CardTitle>
+            <CardTitle>{t('performanceChart')}</CardTitle>
           </CardHeader>
           <CardContent className="h-[300px] flex items-center justify-center text-muted-foreground">
             Chart will be implemented with Recharts
@@ -120,7 +121,7 @@ export default function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Trader Performance</CardTitle>
+            <CardTitle>{t('traderPerformance')}</CardTitle>
           </CardHeader>
           <CardContent className="h-[300px] flex items-center justify-center text-muted-foreground">
             Trader comparison chart coming soon

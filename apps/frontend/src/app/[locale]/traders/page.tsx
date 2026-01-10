@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/routing';
 import { useTraders } from '@/hooks/useTraders';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,6 +19,8 @@ import {
 import { formatCurrency, formatPercentage, formatWalletAddress } from '@polymarket-bot/shared';
 
 export default function TradersPage() {
+  const t = useTranslations('traders');
+  const tCommon = useTranslations('common');
   const [statusFilter, setStatusFilter] = useState<string | undefined>();
   const {
     traders,
@@ -46,7 +49,7 @@ export default function TradersPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this trader?')) {
+    if (confirm(t('deleteConfirm'))) {
       try {
         await deleteTrader(id);
       } catch (error) {
@@ -67,20 +70,20 @@ export default function TradersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Traders</h1>
+          <h1 className="text-3xl font-bold">{t('title')}</h1>
           <p className="text-muted-foreground">
-            Manage traders you are copying
+            {t('subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={() => refresh()}>
             <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
+            {tCommon('refresh')}
           </Button>
           <Link href="/traders/add">
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              Add Trader
+              {t('addTrader')}
             </Button>
           </Link>
         </div>
@@ -93,39 +96,39 @@ export default function TradersPage() {
           size="sm"
           onClick={() => setStatusFilter(undefined)}
         >
-          All
+          {tCommon('all')}
         </Button>
         <Button
           variant={statusFilter === 'ACTIVE' ? 'default' : 'outline'}
           size="sm"
           onClick={() => setStatusFilter('ACTIVE')}
         >
-          Active
+          {tCommon('active')}
         </Button>
         <Button
           variant={statusFilter === 'PAUSED' ? 'default' : 'outline'}
           size="sm"
           onClick={() => setStatusFilter('PAUSED')}
         >
-          Paused
+          {tCommon('paused')}
         </Button>
       </div>
 
       {/* Traders Grid */}
       {isLoading ? (
         <div className="text-center py-12 text-muted-foreground">
-          Loading traders...
+          {tCommon('loading')}
         </div>
       ) : traders.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
             <p className="text-muted-foreground mb-4">
-              No traders found. Add your first trader to start copy trading.
+              {t('noTraders')}
             </p>
             <Link href="/traders/add">
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                Add Trader
+                {t('addTrader')}
               </Button>
             </Link>
           </CardContent>
@@ -138,7 +141,7 @@ export default function TradersPage() {
                 <div className="flex items-start justify-between">
                   <div>
                     <CardTitle className="text-lg">
-                      {trader.name || 'Unnamed Trader'}
+                      {trader.name || t('unnamed')}
                     </CardTitle>
                     <p className="text-sm text-muted-foreground font-mono">
                       {formatWalletAddress(trader.walletAddress)}
@@ -153,7 +156,7 @@ export default function TradersPage() {
                         : 'bg-gray-100 text-gray-700'
                     }`}
                   >
-                    {trader.status}
+                    {trader.status === 'ACTIVE' ? tCommon('active') : tCommon('paused')}
                   </span>
                 </div>
               </CardHeader>
@@ -161,7 +164,7 @@ export default function TradersPage() {
                 {/* Stats */}
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p className="text-muted-foreground">Total P&L</p>
+                    <p className="text-muted-foreground">{t('totalPnl')}</p>
                     <p
                       className={`font-medium flex items-center gap-1 ${
                         trader.totalPnl >= 0 ? 'text-green-600' : 'text-red-600'
@@ -176,17 +179,17 @@ export default function TradersPage() {
                     </p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">Win Rate</p>
+                    <p className="text-muted-foreground">{t('winRate')}</p>
                     <p className="font-medium">
                       {formatPercentage(trader.winRate)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">Trades</p>
+                    <p className="text-muted-foreground">{t('trades')}</p>
                     <p className="font-medium">{trader.totalTrades}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">Allocation</p>
+                    <p className="text-muted-foreground">{t('allocation')}</p>
                     <p className="font-medium">{trader.allocationPercent}%</p>
                   </div>
                 </div>
@@ -200,7 +203,7 @@ export default function TradersPage() {
                       onClick={() => handleStopCopying(trader.id)}
                     >
                       <Pause className="h-4 w-4 mr-1" />
-                      Pause
+                      {t('pause')}
                     </Button>
                   ) : (
                     <Button
@@ -209,7 +212,7 @@ export default function TradersPage() {
                       onClick={() => handleStartCopying(trader.id)}
                     >
                       <Play className="h-4 w-4 mr-1" />
-                      Start
+                      {t('start')}
                     </Button>
                   )}
                   <Button

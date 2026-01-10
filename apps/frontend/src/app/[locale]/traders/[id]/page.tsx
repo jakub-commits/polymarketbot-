@@ -1,7 +1,8 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/routing';
 import { useTrader, useTraderStats, useTraders } from '@/hooks/useTraders';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,6 +24,9 @@ import {
 } from '@polymarket-bot/shared';
 
 export default function TraderDetailPage() {
+  const t = useTranslations('traders');
+  const tCommon = useTranslations('common');
+  const tSettings = useTranslations('settings');
   const params = useParams();
   const id = params.id as string;
 
@@ -57,7 +61,7 @@ export default function TraderDetailPage() {
   if (traderLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-muted-foreground">Loading trader...</div>
+        <div className="text-muted-foreground">{tCommon('loading')}</div>
       </div>
     );
   }
@@ -65,7 +69,7 @@ export default function TraderDetailPage() {
   if (!trader) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-muted-foreground">Trader not found</div>
+        <div className="text-muted-foreground">{t('notFound')}</div>
       </div>
     );
   }
@@ -82,7 +86,7 @@ export default function TraderDetailPage() {
           </Link>
           <div>
             <h1 className="text-3xl font-bold">
-              {trader.name || 'Unnamed Trader'}
+              {trader.name || t('unnamed')}
             </h1>
             <div className="flex items-center gap-2 text-muted-foreground">
               <span className="font-mono">
@@ -103,23 +107,23 @@ export default function TraderDetailPage() {
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={handleSync}>
             <RefreshCw className="h-4 w-4 mr-2" />
-            Sync
+            {t('sync')}
           </Button>
           {trader.status === 'ACTIVE' ? (
             <Button variant="outline" onClick={handleStopCopying}>
               <Pause className="h-4 w-4 mr-2" />
-              Pause
+              {t('pause')}
             </Button>
           ) : (
             <Button onClick={handleStartCopying}>
               <Play className="h-4 w-4 mr-2" />
-              Start Copying
+              {t('startCopying')}
             </Button>
           )}
           <Link href={`/traders/${id}/edit`}>
             <Button variant="outline">
               <Settings className="h-4 w-4 mr-2" />
-              Settings
+              {tSettings('title')}
             </Button>
           </Link>
         </div>
@@ -136,11 +140,11 @@ export default function TraderDetailPage() {
               : 'bg-gray-100 text-gray-700'
           }`}
         >
-          {trader.status}
+          {trader.status === 'ACTIVE' ? tCommon('active') : tCommon('paused')}
         </span>
         {trader.lastSyncAt && (
           <span className="text-sm text-muted-foreground">
-            Last synced {formatRelativeTime(trader.lastSyncAt)}
+            {t('lastSynced', { time: formatRelativeTime(trader.lastSyncAt) })}
           </span>
         )}
       </div>
@@ -150,7 +154,7 @@ export default function TraderDetailPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total P&L
+              {t('totalPnl')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -172,7 +176,7 @@ export default function TraderDetailPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Win Rate
+              {t('winRate')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -180,7 +184,7 @@ export default function TraderDetailPage() {
               {formatPercentage(stats?.winRate || 0)}
             </div>
             <p className="text-xs text-muted-foreground">
-              {stats?.profitableTrades || 0} / {stats?.totalTrades || 0} trades
+              {stats?.profitableTrades || 0} / {stats?.totalTrades || 0} {t('trades')}
             </p>
           </CardContent>
         </Card>
@@ -188,7 +192,7 @@ export default function TraderDetailPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Open Positions
+              {t('openPositions')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -196,7 +200,7 @@ export default function TraderDetailPage() {
               {stats?.openPositions || 0}
             </div>
             <p className="text-xs text-muted-foreground">
-              Unrealized: {formatCurrency(stats?.unrealizedPnl || 0)}
+              {t('unrealized')}: {formatCurrency(stats?.unrealizedPnl || 0)}
             </p>
           </CardContent>
         </Card>
@@ -204,7 +208,7 @@ export default function TraderDetailPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Allocation
+              {t('allocation')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -223,28 +227,28 @@ export default function TraderDetailPage() {
       {/* Settings Summary */}
       <Card>
         <CardHeader>
-          <CardTitle>Copy Settings</CardTitle>
+          <CardTitle>{t('addNew.copySettings')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
-              <p className="text-muted-foreground">Min Trade</p>
+              <p className="text-muted-foreground">{t('detail.minTrade')}</p>
               <p className="font-medium">
                 {formatCurrency(trader.minTradeAmount)}
               </p>
             </div>
             <div>
-              <p className="text-muted-foreground">Slippage Tolerance</p>
+              <p className="text-muted-foreground">{t('detail.slippageTolerance')}</p>
               <p className="font-medium">{trader.slippageTolerance}%</p>
             </div>
             <div>
-              <p className="text-muted-foreground">Max Drawdown</p>
+              <p className="text-muted-foreground">{t('detail.maxDrawdown')}</p>
               <p className="font-medium">{trader.maxDrawdownPercent}%</p>
             </div>
             <div>
-              <p className="text-muted-foreground">Stop Loss</p>
+              <p className="text-muted-foreground">{t('detail.stopLoss')}</p>
               <p className="font-medium">
-                {trader.stopLossPercent ? `${trader.stopLossPercent}%` : 'None'}
+                {trader.stopLossPercent ? `${trader.stopLossPercent}%` : t('detail.none')}
               </p>
             </div>
           </div>
@@ -254,7 +258,7 @@ export default function TraderDetailPage() {
       {/* Open Positions */}
       <Card>
         <CardHeader>
-          <CardTitle>Open Positions</CardTitle>
+          <CardTitle>{t('openPositions')}</CardTitle>
         </CardHeader>
         <CardContent>
           {trader.positions && trader.positions.length > 0 ? (
@@ -274,10 +278,10 @@ export default function TraderDetailPage() {
                 >
                   <div>
                     <p className="font-medium">
-                      {position.market?.question || 'Unknown Market'}
+                      {position.market?.question || t('detail.unknownMarket')}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {position.outcome} · {position.shares.toFixed(2)} shares @{' '}
+                      {position.outcome} · {position.shares.toFixed(2)} {t('detail.shares')} @{' '}
                       {(position.avgEntryPrice * 100).toFixed(1)}%
                     </p>
                   </div>
@@ -293,7 +297,7 @@ export default function TraderDetailPage() {
                     </p>
                     {position.currentPrice && (
                       <p className="text-sm text-muted-foreground">
-                        Current: {(position.currentPrice * 100).toFixed(1)}%
+                        {t('detail.current')}: {(position.currentPrice * 100).toFixed(1)}%
                       </p>
                     )}
                   </div>
@@ -302,7 +306,7 @@ export default function TraderDetailPage() {
             </div>
           ) : (
             <p className="text-muted-foreground text-center py-8">
-              No open positions
+              {t('noOpenPositions')}
             </p>
           )}
         </CardContent>

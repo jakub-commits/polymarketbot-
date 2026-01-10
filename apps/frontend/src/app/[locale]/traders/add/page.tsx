@@ -2,13 +2,16 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/routing';
 import { useTraders } from '@/hooks/useTraders';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ArrowLeft } from 'lucide-react';
 
 export default function AddTraderPage() {
+  const t = useTranslations('traders.addNew');
+  const tCommon = useTranslations('common');
   const router = useRouter();
   const { addTrader } = useTraders();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -79,9 +82,9 @@ export default function AddTraderPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-3xl font-bold">Add Trader</h1>
+          <h1 className="text-3xl font-bold">{t('title')}</h1>
           <p className="text-muted-foreground">
-            Add a new trader to copy their trades
+            {t('subtitle')}
           </p>
         </div>
       </div>
@@ -89,9 +92,9 @@ export default function AddTraderPage() {
       <form onSubmit={handleSubmit}>
         <Card>
           <CardHeader>
-            <CardTitle>Trader Information</CardTitle>
+            <CardTitle>{t('traderInfo')}</CardTitle>
             <CardDescription>
-              Enter the wallet address of the trader you want to copy
+              {t('traderInfoDesc')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -103,38 +106,38 @@ export default function AddTraderPage() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">
-                Wallet Address <span className="text-destructive">*</span>
+                {t('walletPlaceholder').replace('0x...', 'Wallet Address')} <span className="text-destructive">*</span>
               </label>
               <input
                 type="text"
                 name="walletAddress"
                 value={formData.walletAddress}
                 onChange={handleChange}
-                placeholder="0x..."
+                placeholder={t('walletPlaceholder')}
                 required
                 className="w-full px-3 py-2 border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Name (optional)</label>
+              <label className="text-sm font-medium">{t('name')}</label>
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                placeholder="e.g., Whale Trader"
+                placeholder={t('namePlaceholder')}
                 className="w-full px-3 py-2 border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Description (optional)</label>
+              <label className="text-sm font-medium">{t('description')}</label>
               <textarea
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
-                placeholder="Notes about this trader..."
+                placeholder={t('descriptionPlaceholder')}
                 rows={2}
                 className="w-full px-3 py-2 border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary resize-none"
               />
@@ -144,16 +147,16 @@ export default function AddTraderPage() {
 
         <Card className="mt-4">
           <CardHeader>
-            <CardTitle>Copy Settings</CardTitle>
+            <CardTitle>{t('copySettings')}</CardTitle>
             <CardDescription>
-              Configure how trades should be copied
+              {t('copySettingsDesc')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">
-                  Allocation (% of capital)
+                  {t('allocationLabel')}
                 </label>
                 <input
                   type="number"
@@ -168,14 +171,14 @@ export default function AddTraderPage() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">
-                  Max Position Size (USDC)
+                  {t('maxPositionSize')}
                 </label>
                 <input
                   type="number"
                   name="maxPositionSize"
                   value={formData.maxPositionSize}
                   onChange={handleChange}
-                  placeholder="No limit"
+                  placeholder={t('noLimit')}
                   min="0"
                   className="w-full px-3 py-2 border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                 />
@@ -183,7 +186,7 @@ export default function AddTraderPage() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">
-                  Min Trade Amount (USDC)
+                  {t('minTradeAmount')}
                 </label>
                 <input
                   type="number"
@@ -198,7 +201,7 @@ export default function AddTraderPage() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">
-                  Slippage Tolerance (%)
+                  {t('slippageTolerance')}
                 </label>
                 <input
                   type="number"
@@ -217,16 +220,16 @@ export default function AddTraderPage() {
 
         <Card className="mt-4">
           <CardHeader>
-            <CardTitle>Risk Management</CardTitle>
+            <CardTitle>{t('riskManagement')}</CardTitle>
             <CardDescription>
-              Set limits to protect your capital
+              {t('riskManagementDesc')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">
-                  Max Drawdown (%)
+                  {t('maxDrawdown')}
                 </label>
                 <input
                   type="number"
@@ -240,13 +243,13 @@ export default function AddTraderPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Stop Loss (%)</label>
+                <label className="text-sm font-medium">{t('stopLoss')}</label>
                 <input
                   type="number"
                   name="stopLossPercent"
                   value={formData.stopLossPercent}
                   onChange={handleChange}
-                  placeholder="Optional"
+                  placeholder={t('optional')}
                   min="1"
                   max="100"
                   className="w-full px-3 py-2 border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary"
@@ -254,13 +257,13 @@ export default function AddTraderPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Take Profit (%)</label>
+                <label className="text-sm font-medium">{t('takeProfit')}</label>
                 <input
                   type="number"
                   name="takeProfitPercent"
                   value={formData.takeProfitPercent}
                   onChange={handleChange}
-                  placeholder="Optional"
+                  placeholder={t('optional')}
                   min="1"
                   max="1000"
                   className="w-full px-3 py-2 border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary"
@@ -273,11 +276,11 @@ export default function AddTraderPage() {
         <div className="flex justify-end gap-4 mt-6">
           <Link href="/traders">
             <Button variant="outline" type="button">
-              Cancel
+              {tCommon('cancel')}
             </Button>
           </Link>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Adding...' : 'Add Trader'}
+            {isSubmitting ? t('adding') : t('submit')}
           </Button>
         </div>
       </form>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import useSWR from 'swr';
 import {
   Table,
@@ -78,6 +79,8 @@ type SortField = 'executedAt' | 'amount' | 'pnl' | 'price';
 type SortOrder = 'asc' | 'desc';
 
 export function TradeHistoryTable({ traderId, className }: TradeHistoryTableProps) {
+  const t = useTranslations('trades');
+  const tCommon = useTranslations('common');
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
   const [search, setSearch] = useState('');
@@ -139,12 +142,12 @@ export function TradeHistoryTable({ traderId, className }: TradeHistoryTableProp
     <Card className={className}>
       <CardHeader>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <CardTitle>Trade History</CardTitle>
+          <CardTitle>{t('title')}</CardTitle>
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search markets..."
+                placeholder={t('searchMarkets')}
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
@@ -156,23 +159,23 @@ export function TradeHistoryTable({ traderId, className }: TradeHistoryTableProp
             <Select value={sideFilter} onValueChange={(v) => { setSideFilter(v); setPage(1); }}>
               <SelectTrigger className="w-[100px]">
                 <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Side" />
+                <SelectValue placeholder={t('side')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Sides</SelectItem>
-                <SelectItem value="BUY">Buy</SelectItem>
-                <SelectItem value="SELL">Sell</SelectItem>
+                <SelectItem value="all">{tCommon('all')}</SelectItem>
+                <SelectItem value="BUY">{t('buy')}</SelectItem>
+                <SelectItem value="SELL">{t('sell')}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); }}>
               <SelectTrigger className="w-[120px]">
-                <SelectValue placeholder="Status" />
+                <SelectValue placeholder={tCommon('status')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="FILLED">Filled</SelectItem>
-                <SelectItem value="PENDING">Pending</SelectItem>
-                <SelectItem value="FAILED">Failed</SelectItem>
+                <SelectItem value="all">{tCommon('all')}</SelectItem>
+                <SelectItem value="FILLED">{t('filled')}</SelectItem>
+                <SelectItem value="PENDING">{t('pending')}</SelectItem>
+                <SelectItem value="FAILED">{t('failed')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -185,7 +188,7 @@ export function TradeHistoryTable({ traderId, className }: TradeHistoryTableProp
           </div>
         ) : error ? (
           <div className="h-[400px] flex items-center justify-center text-muted-foreground">
-            Failed to load trade history
+            {tCommon('error')}
           </div>
         ) : (
           <>
@@ -198,19 +201,19 @@ export function TradeHistoryTable({ traderId, className }: TradeHistoryTableProp
                       onClick={() => handleSort('executedAt')}
                     >
                       <div className="flex items-center gap-1">
-                        Date
+                        {t('date')}
                         <ArrowUpDown className="h-4 w-4" />
                       </div>
                     </TableHead>
-                    <TableHead>Market</TableHead>
-                    <TableHead>Side</TableHead>
-                    <TableHead>Outcome</TableHead>
+                    <TableHead>{t('market')}</TableHead>
+                    <TableHead>{t('side')}</TableHead>
+                    <TableHead>{t('outcome')}</TableHead>
                     <TableHead
                       className="cursor-pointer hover:bg-muted/50 text-right"
                       onClick={() => handleSort('amount')}
                     >
                       <div className="flex items-center justify-end gap-1">
-                        Amount
+                        {t('amount')}
                         <ArrowUpDown className="h-4 w-4" />
                       </div>
                     </TableHead>
@@ -219,17 +222,17 @@ export function TradeHistoryTable({ traderId, className }: TradeHistoryTableProp
                       onClick={() => handleSort('price')}
                     >
                       <div className="flex items-center justify-end gap-1">
-                        Price
+                        {t('price')}
                         <ArrowUpDown className="h-4 w-4" />
                       </div>
                     </TableHead>
-                    <TableHead className="text-right">Status</TableHead>
+                    <TableHead className="text-right">{tCommon('status')}</TableHead>
                     <TableHead
                       className="cursor-pointer hover:bg-muted/50 text-right"
                       onClick={() => handleSort('pnl')}
                     >
                       <div className="flex items-center justify-end gap-1">
-                        P&L
+                        {t('pnl')}
                         <ArrowUpDown className="h-4 w-4" />
                       </div>
                     </TableHead>
@@ -239,7 +242,7 @@ export function TradeHistoryTable({ traderId, className }: TradeHistoryTableProp
                   {data?.trades.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
-                        No trades found
+                        {t('noTrades')}
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -287,7 +290,7 @@ export function TradeHistoryTable({ traderId, className }: TradeHistoryTableProp
             {totalPages > 1 && (
               <div className="flex items-center justify-between mt-4">
                 <p className="text-sm text-muted-foreground">
-                  Showing {((page - 1) * pageSize) + 1} to {Math.min(page * pageSize, data?.total || 0)} of {data?.total || 0} trades
+                  {tCommon('showing')} {((page - 1) * pageSize) + 1} {tCommon('to')} {Math.min(page * pageSize, data?.total || 0)} {tCommon('of')} {data?.total || 0}
                 </p>
                 <div className="flex items-center gap-2">
                   <Button
@@ -299,7 +302,7 @@ export function TradeHistoryTable({ traderId, className }: TradeHistoryTableProp
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
                   <span className="text-sm">
-                    Page {page} of {totalPages}
+                    {tCommon('page')} {page} {tCommon('of')} {totalPages}
                   </span>
                   <Button
                     variant="outline"
