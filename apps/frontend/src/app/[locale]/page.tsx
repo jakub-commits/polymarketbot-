@@ -10,6 +10,10 @@ import {
   RiskAlertBanner,
 } from '@/components/dashboard';
 import {
+  PnLChart,
+  TraderComparison,
+} from '@/components/analytics';
+import {
   TrendingUp,
   TrendingDown,
   Wallet,
@@ -108,25 +112,10 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Charts Placeholder */}
+      {/* Charts */}
       <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('performanceChart')}</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[300px] flex items-center justify-center text-muted-foreground">
-            Chart will be implemented with Recharts
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('traderPerformance')}</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[300px] flex items-center justify-center text-muted-foreground">
-            Trader comparison chart coming soon
-          </CardContent>
-        </Card>
+        <PnLChart />
+        <TraderComparison />
       </div>
     </div>
   );

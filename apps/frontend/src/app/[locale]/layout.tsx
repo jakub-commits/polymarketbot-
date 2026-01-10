@@ -5,6 +5,9 @@ import { Inter } from 'next/font/google';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
 import { locales, type Locale } from '@/i18n/config';
+import { ThemeProvider } from '@/providers/theme-provider';
+import { AuthProvider } from '@/providers/auth-provider';
+import { Toaster } from '@/components/ui/toaster';
 
 const inter = Inter({ subsets: ['latin', 'latin-ext'] });
 
@@ -32,20 +35,30 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className={`${inter.className} min-h-screen bg-background antialiased`}>
-        <NextIntlClientProvider messages={messages}>
-          <div className="relative flex min-h-screen">
-            {/* Fixed Sidebar */}
-            <Sidebar />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <NextIntlClientProvider messages={messages}>
+            <AuthProvider>
+              <div className="relative flex min-h-screen">
+                {/* Fixed Sidebar */}
+                <Sidebar />
 
-            {/* Main Content Area */}
-            <div className="flex-1 flex flex-col ml-64">
-              <Header />
-              <main className="flex-1 p-6 overflow-auto">
-                {children}
-              </main>
-            </div>
-          </div>
-        </NextIntlClientProvider>
+                {/* Main Content Area */}
+                <div className="flex-1 flex flex-col ml-64">
+                  <Header />
+                  <main className="flex-1 p-6 overflow-auto">
+                    {children}
+                  </main>
+                </div>
+              </div>
+              <Toaster />
+            </AuthProvider>
+          </NextIntlClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

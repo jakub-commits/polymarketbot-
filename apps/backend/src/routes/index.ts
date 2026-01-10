@@ -2,6 +2,7 @@
 
 import { Router } from 'express';
 import healthRoutes from './health.routes.js';
+import authRoutes from './auth.routes.js';
 import traderRoutes from './trader.routes.js';
 import tradeRoutes from './trade.routes.js';
 import positionRoutes from './position.routes.js';
@@ -14,6 +15,9 @@ const router = Router();
 
 // Health checks (no /api prefix)
 router.use('/health', healthRoutes);
+
+// Auth routes
+router.use('/auth', authRoutes);
 
 // API routes
 router.use('/dashboard', dashboardRoutes);

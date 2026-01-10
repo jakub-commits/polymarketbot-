@@ -56,6 +56,38 @@ enum LogLevel {
   ERROR
 }
 
+// ==================== AUTH MODELS ====================
+
+/// User account for authentication
+model User {
+  id                String        @id @default(cuid())
+  email             String        @unique
+  passwordHash      String
+  name              String?
+
+  // Email verification
+  emailVerified     Boolean       @default(false)
+  verificationToken String?
+
+  // Password reset
+  resetToken        String?
+  resetTokenExpiry  DateTime?
+
+  // Session management
+  refreshToken      String?
+  lastLoginAt       DateTime?
+
+  // Status
+  isActive          Boolean       @default(true)
+
+  // Timestamps
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([email])
+  @@index([refreshToken])
+}
+
 // ==================== CORE MODELS ====================
 
 /// Trader being monitored for copy trading

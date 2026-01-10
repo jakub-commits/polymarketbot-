@@ -4,6 +4,7 @@ import { Bell, Wifi, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useConnectionStatus } from '@/hooks/useWebSocket';
 import { LanguageSwitcher } from './language-switcher';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 export function Header() {
   const isConnected = useConnectionStatus();
@@ -33,6 +34,9 @@ export function Header() {
 
           {/* Language Switcher */}
           <LanguageSwitcher />
+
+          {/* Theme Toggle */}
+          <ThemeToggle />
 
           {/* Notifications */}
           <Button variant="ghost" size="icon">

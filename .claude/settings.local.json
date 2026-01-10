@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm run lint)",
+      "Bash(pnpm run test:*)",
+      "Bash(npx jest --testNamePattern=\"should add warning when balance is low but sufficient\" --no-coverage)",
+      "Bash(pnpm run typecheck:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfix: resolve CI failures in linting and tests\n\n- Migrate ESLint to v9 flat config for backend/shared\n- Keep frontend on ESLint v8 \\(Next.js 14 compatibility\\)\n- Fix Jest mock hoisting in service tests by using inline mocks\n- Fix estimateSlippage calculation in clob-client.service\n- Remove unused imports across backend and frontend\n- Update test assertions for floating point precision\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(pnpm dev)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(pnpm add:*)"
+    ]
+  }
+}
