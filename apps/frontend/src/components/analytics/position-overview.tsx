@@ -41,7 +41,7 @@ const fetcher = async (url: string) => {
   const res = await fetch(url);
   if (!res.ok) throw new Error('Failed to fetch');
   const json = await res.json();
-  return json.data;
+  return json.data?.items || [];
 };
 
 const COLORS = ['#22c55e', '#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899'];

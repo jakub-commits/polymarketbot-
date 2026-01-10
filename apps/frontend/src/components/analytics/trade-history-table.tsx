@@ -64,7 +64,14 @@ const fetcher = async (url: string) => {
   const res = await fetch(url);
   if (!res.ok) throw new Error('Failed to fetch');
   const json = await res.json();
-  return json.data;
+  // Map API response { items, total, ... } to expected format { trades, total, ... }
+  const data = json.data || {};
+  return {
+    trades: data.items || [],
+    total: data.total || 0,
+    page: data.page || 1,
+    pageSize: data.limit || 20,
+  };
 };
 
 type SortField = 'executedAt' | 'amount' | 'pnl' | 'price';
