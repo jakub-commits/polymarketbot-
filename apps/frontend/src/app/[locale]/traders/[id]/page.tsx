@@ -31,7 +31,7 @@ export default function TraderDetailPage() {
   const id = params.id as string;
 
   const { trader, isLoading: traderLoading } = useTrader(id);
-  const { stats, isLoading: statsLoading } = useTraderStats(id);
+  const { stats } = useTraderStats(id);
   const { startCopying, stopCopying, syncPositions } = useTraders();
 
   const handleStartCopying = async () => {

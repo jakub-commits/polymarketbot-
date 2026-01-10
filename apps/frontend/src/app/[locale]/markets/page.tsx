@@ -33,7 +33,6 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
-import { fetcher } from '@/lib/api-client';
 
 interface Market {
   id: string;

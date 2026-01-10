@@ -2,7 +2,7 @@
 // Tests for order book, pricing, order management, and slippage estimation
 
 import { ClobClientService } from '../../../services/polymarket/clob-client.service';
-import { AppError, ERROR_CODES } from '@polymarket-bot/shared';
+import { AppError } from '@polymarket-bot/shared';
 
 // Mock dependencies
 jest.mock('@polymarket/clob-client', () => ({
@@ -191,9 +191,9 @@ describe('ClobClientService', () => {
 
       const price = await service.getPrice('token-123');
 
-      expect(price.bid).toBe(0.6);
-      expect(price.ask).toBe(0.7);
-      expect(price.mid).toBe(0.65);
+      expect(price.bid).toBeCloseTo(0.6, 10);
+      expect(price.ask).toBeCloseTo(0.7, 10);
+      expect(price.mid).toBeCloseTo(0.65, 10);
       expect(price.spread).toBeCloseTo(0.1, 2);
     });
 

@@ -2,71 +2,50 @@
 // Tests for copy trade logic, event handling, and error handling
 
 import { EventEmitter } from 'events';
-import { TradeCopierService } from '../../../services/trade/trade-copier.service';
 import type { PositionChange } from '@polymarket-bot/shared';
 
-// Mock dependencies
-const mockPrisma = {
-  trader: {
-    findUnique: jest.fn(),
-  },
-  position: {
-    findFirst: jest.fn(),
-  },
-  activityLog: {
-    create: jest.fn(),
-  },
-};
+// Create mock EventEmitter for trader monitor
+const mockTraderMonitor = new EventEmitter();
 
+// Mock dependencies - define inline to avoid hoisting issues
 jest.mock('../../../config/database', () => ({
-  prisma: mockPrisma,
+  prisma: {
+    trader: { findUnique: jest.fn() },
+    position: { findFirst: jest.fn() },
+    activityLog: { create: jest.fn() },
+  },
 }));
 
-// Mock trader monitor service
-const mockTraderMonitor = new EventEmitter();
 jest.mock('../../../services/trader/trader-monitor.service', () => ({
   traderMonitorService: mockTraderMonitor,
 }));
 
-// Mock position sizing service
-const mockPositionSizingService = {
-  calculateSize: jest.fn(),
-  getExistingPosition: jest.fn(),
-  calculateDecreaseSize: jest.fn(),
-};
-
 jest.mock('../../../services/trade/position-sizing.service', () => ({
-  positionSizingService: mockPositionSizingService,
+  positionSizingService: {
+    calculateSize: jest.fn(),
+    getExistingPosition: jest.fn(),
+    calculateDecreaseSize: jest.fn(),
+  },
 }));
-
-// Mock trade executor service
-const mockTradeExecutorService = {
-  execute: jest.fn(),
-};
 
 jest.mock('../../../services/trade/trade-executor.service', () => ({
-  tradeExecutorService: mockTradeExecutorService,
+  tradeExecutorService: {
+    execute: jest.fn(),
+  },
 }));
-
-// Mock retry queue service
-const mockRetryQueueService = {
-  scheduleRetry: jest.fn(),
-};
 
 jest.mock('../../../services/trade/retry-queue.service', () => ({
-  retryQueueService: mockRetryQueueService,
+  retryQueueService: {
+    scheduleRetry: jest.fn(),
+  },
 }));
-
-// Mock market data service
-const mockMarketDataService = {
-  getMarket: jest.fn(),
-};
 
 jest.mock('../../../services/polymarket/market-data.service', () => ({
-  marketDataService: mockMarketDataService,
+  marketDataService: {
+    getMarket: jest.fn(),
+  },
 }));
 
-// Mock logger
 jest.mock('../../../utils/logger', () => ({
   logger: {
     info: jest.fn(),
@@ -75,6 +54,21 @@ jest.mock('../../../utils/logger', () => ({
     debug: jest.fn(),
   },
 }));
+
+// Import after mocks are set up
+import { TradeCopierService } from '../../../services/trade/trade-copier.service';
+import { prisma } from '../../../config/database';
+import { positionSizingService } from '../../../services/trade/position-sizing.service';
+import { tradeExecutorService } from '../../../services/trade/trade-executor.service';
+import { retryQueueService } from '../../../services/trade/retry-queue.service';
+import { marketDataService } from '../../../services/polymarket/market-data.service';
+
+// Get mocked references
+const mockPrisma = jest.mocked(prisma);
+const mockPositionSizingService = jest.mocked(positionSizingService);
+const mockTradeExecutorService = jest.mocked(tradeExecutorService);
+const mockRetryQueueService = jest.mocked(retryQueueService);
+const mockMarketDataService = jest.mocked(marketDataService);
 
 describe('TradeCopierService', () => {
   let service: TradeCopierService;

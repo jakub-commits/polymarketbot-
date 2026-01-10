@@ -2,7 +2,6 @@
 // Calculates performance metrics and generates reports
 
 import { prisma } from '../../config/database.js';
-import { logger } from '../../utils/logger.js';
 import { cache } from '../../config/redis.js';
 
 export interface PerformanceMetrics {

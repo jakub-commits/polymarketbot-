@@ -4,11 +4,10 @@
 import { prisma } from '../../config/database.js';
 import { logger } from '../../utils/logger.js';
 import { clobClientService } from '../polymarket/clob-client.service.js';
-import { marketDataService } from '../polymarket/market-data.service.js';
 import { riskManagerService } from '../risk/risk-manager.service.js';
 import { io } from '../../server.js';
 import { AppError, ERROR_CODES } from '@polymarket-bot/shared';
-import type { TradeSide, OrderType, TradeResult } from '@polymarket-bot/shared';
+import type { TradeSide, OrderType } from '@polymarket-bot/shared';
 
 export interface ExecuteOrderParams {
   traderId: string;

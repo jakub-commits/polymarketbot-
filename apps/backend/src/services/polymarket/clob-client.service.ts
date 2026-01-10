@@ -352,19 +352,22 @@ export class ClobClientService {
     }
 
     let remainingAmount = amount;
-    let totalCost = 0;
+    let totalShares = 0;
     const bestPrice = levels[0].price;
 
     for (const level of levels) {
       const levelValue = level.size * level.price;
 
       if (remainingAmount <= levelValue) {
-        totalCost += remainingAmount;
+        // Can fill entirely at this level
+        const sharesBought = remainingAmount / level.price;
+        totalShares += sharesBought;
         remainingAmount = 0;
         break;
       }
 
-      totalCost += levelValue;
+      // Fill entire level
+      totalShares += level.size;
       remainingAmount -= levelValue;
     }
 
@@ -373,7 +376,7 @@ export class ClobClientService {
       return 1;
     }
 
-    const avgPrice = totalCost / amount;
+    const avgPrice = amount / totalShares;
     const slippage = Math.abs(avgPrice - bestPrice) / bestPrice;
 
     return slippage;

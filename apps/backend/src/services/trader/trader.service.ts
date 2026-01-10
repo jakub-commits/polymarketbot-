@@ -16,7 +16,6 @@ import type {
   CreateTraderInput,
   UpdateTraderInput,
   TraderStats,
-  Trader,
 } from '@polymarket-bot/shared';
 
 export class TraderService {

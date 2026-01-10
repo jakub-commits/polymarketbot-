@@ -3,7 +3,6 @@
 
 import axios, { AxiosInstance } from 'axios';
 import { config } from '../../config/index.js';
-import { logger } from '../../utils/logger.js';
 import { retry, isRetryableError } from '../../utils/retry.js';
 import { gammaRateLimiter } from '../../utils/rate-limiter.js';
 import { cache } from '../../config/redis.js';

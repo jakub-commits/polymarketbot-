@@ -1,47 +1,27 @@
 // Unit tests for RiskManagerService
 // Tests for trade validation, position size limits, drawdown checks
 
-import { RiskManagerService } from '../../../services/risk/risk-manager.service';
-import type { RiskCheckParams, RiskLimits } from '../../../services/risk/risk-manager.service';
-
-// Mock Prisma
-const mockPrisma = {
-  trader: {
-    findUnique: jest.fn(),
-  },
-  position: {
-    findMany: jest.fn(),
-    findFirst: jest.fn(),
-    count: jest.fn(),
-  },
-  trade: {
-    findMany: jest.fn(),
-  },
-};
-
+// Mock dependencies - define inline to avoid hoisting issues
 jest.mock('../../../config/database', () => ({
-  prisma: mockPrisma,
+  prisma: {
+    trader: { findUnique: jest.fn() },
+    position: { findMany: jest.fn(), findFirst: jest.fn(), count: jest.fn() },
+    trade: { findMany: jest.fn() },
+  },
 }));
-
-// Mock wallet service
-const mockWalletService = {
-  getBalance: jest.fn(),
-};
 
 jest.mock('../../../services/wallet/wallet.service', () => ({
-  walletService: mockWalletService,
+  walletService: {
+    getBalance: jest.fn(),
+  },
 }));
-
-// Mock CLOB client service
-const mockClobClientService = {
-  estimateSlippage: jest.fn(),
-};
 
 jest.mock('../../../services/polymarket/clob-client.service', () => ({
-  clobClientService: mockClobClientService,
+  clobClientService: {
+    estimateSlippage: jest.fn(),
+  },
 }));
 
-// Mock logger
 jest.mock('../../../utils/logger', () => ({
   logger: {
     info: jest.fn(),
@@ -50,6 +30,18 @@ jest.mock('../../../utils/logger', () => ({
     debug: jest.fn(),
   },
 }));
+
+// Import after mocks are set up
+import { RiskManagerService } from '../../../services/risk/risk-manager.service';
+import type { RiskCheckParams } from '../../../services/risk/risk-manager.service';
+import { prisma } from '../../../config/database';
+import { walletService } from '../../../services/wallet/wallet.service';
+import { clobClientService } from '../../../services/polymarket/clob-client.service';
+
+// Get mocked references
+const mockPrisma = jest.mocked(prisma);
+const mockWalletService = jest.mocked(walletService);
+const mockClobClientService = jest.mocked(clobClientService);
 
 describe('RiskManagerService', () => {
   let service: RiskManagerService;
@@ -132,7 +124,15 @@ describe('RiskManagerService', () => {
     });
 
     it('should add warning when balance is low but sufficient', async () => {
-      mockWalletService.getBalance.mockResolvedValue(52); // Amount + less than $5 buffer
+      // Set balance to 52 (just enough for amount=50 with buffer warning)
+      mockWalletService.getBalance.mockResolvedValue(52);
+
+      // Update trader's peakBalance to avoid drawdown rejection
+      // With balance=52, peakBalance needs to be close to avoid exceeding 20% drawdown
+      mockPrisma.trader.findUnique.mockResolvedValue({
+        ...defaultTrader,
+        peakBalance: 60, // 52/60 = 13.3% drawdown, within 20% limit
+      });
 
       const result = await service.checkTradeRisk(defaultParams);
 
