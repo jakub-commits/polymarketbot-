@@ -16,10 +16,8 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
 
-  // Experimental features
-  experimental: {
-    serverComponentsExternalPackages: ['@polymarket-bot/shared'],
-  },
+  // External packages for server components (moved from experimental in 14.1+)
+  serverExternalPackages: ['@polymarket-bot/shared'],
 
   // Environment variables that should be available at runtime
   env: {

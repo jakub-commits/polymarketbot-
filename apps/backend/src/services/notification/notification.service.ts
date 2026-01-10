@@ -50,7 +50,7 @@ class NotificationService {
       where: { key: 'notifications' },
     });
 
-    this.settings = settings?.value as NotificationSettings || {
+    this.settings = (settings?.value as unknown as NotificationSettings) || {
       enableTradeNotifications: true,
       enableRiskNotifications: true,
       enableDailySummary: true,

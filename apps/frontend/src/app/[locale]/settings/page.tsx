@@ -20,6 +20,7 @@ import {
   RefreshCw,
   Save,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { fetcher } from '@/lib/api-client';
 
 interface HealthStatus {
@@ -90,8 +91,8 @@ export default function SettingsPage() {
         mutateSettings();
         setLocalSettings(null);
       }
-    } catch (error) {
-      console.error('Failed to save settings:', error);
+    } catch {
+      toast.error('Failed to save settings');
     } finally {
       setIsSaving(false);
     }

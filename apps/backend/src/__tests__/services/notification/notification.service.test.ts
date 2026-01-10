@@ -1,20 +1,29 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import axios from 'axios';
 
 // Mock axios
-vi.mock('axios');
-const mockedAxios = vi.mocked(axios);
+jest.mock('axios');
+const mockedAxios = jest.mocked(axios);
+
+// Mock logger
+jest.mock('../../../utils/logger', () => ({
+  logger: {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn(),
+  },
+}));
 
 // Mock PrismaClient
 const mockPrisma = {
   settings: {
-    findUnique: vi.fn(),
-    upsert: vi.fn(),
+    findUnique: jest.fn(),
+    upsert: jest.fn(),
   },
 };
 
-vi.mock('@prisma/client', () => ({
-  PrismaClient: vi.fn(() => mockPrisma),
+jest.mock('@prisma/client', () => ({
+  PrismaClient: jest.fn(() => mockPrisma),
 }));
 
 // Import after mocking
@@ -22,7 +31,7 @@ import { notificationService } from '../../../services/notification';
 
 describe('NotificationService', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   describe('loadSettings', () => {

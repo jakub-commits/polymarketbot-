@@ -29,10 +29,11 @@ services:
     networks:
       - polymarket_network
     healthcheck:
-      test: ["CMD", "nginx", "-t"]
+      test: ["CMD-SHELL", "curl -f http://localhost/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 10s
     deploy:
       resources:
         limits:
@@ -41,6 +42,11 @@ services:
         reservations:
           cpus: '0.1'
           memory: 32M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # ---------------------------------------------------------------------------
   # PostgreSQL Database
@@ -78,6 +84,11 @@ services:
     # Only expose internally - no external port mapping in production
     expose:
       - "5432"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # ---------------------------------------------------------------------------
   # Redis Cache
@@ -115,6 +126,11 @@ services:
     # Only expose internally
     expose:
       - "6379"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # ---------------------------------------------------------------------------
   # Backend API
@@ -170,6 +186,11 @@ services:
     # Only expose internally
     expose:
       - "3001"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # ---------------------------------------------------------------------------
   # Frontend
@@ -205,6 +226,11 @@ services:
     # Only expose internally
     expose:
       - "3000"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 # -----------------------------------------------------------------------------
 # Volumes

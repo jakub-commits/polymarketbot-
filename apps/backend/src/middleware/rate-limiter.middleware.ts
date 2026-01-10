@@ -32,3 +32,35 @@ export const tradeRateLimiter = rateLimit({
     },
   },
 });
+
+// Rate limiter for login endpoint - prevents brute-force attacks
+export const loginRateLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 5, // 5 login attempts per minute per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: false,
+  message: {
+    success: false,
+    error: {
+      code: ERROR_CODES.RATE_LIMITED,
+      message: 'Too many login attempts, please try again later',
+    },
+  },
+});
+
+// Rate limiter for registration endpoint - prevents spam registrations
+export const registerRateLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 3, // 3 registration attempts per minute per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: false,
+  message: {
+    success: false,
+    error: {
+      code: ERROR_CODES.RATE_LIMITED,
+      message: 'Too many registration attempts, please try again later',
+    },
+  },
+});

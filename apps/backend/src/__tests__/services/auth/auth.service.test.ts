@@ -1,19 +1,37 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+
+// Mock config
+jest.mock('../../../config', () => ({
+  config: {
+    jwtSecret: 'test-jwt-secret-that-is-at-least-32-characters',
+    jwtExpiresIn: '15m',
+    refreshTokenExpiresIn: '7d',
+  },
+}));
+
+// Mock logger
+jest.mock('../../../utils/logger', () => ({
+  logger: {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn(),
+  },
+}));
 
 // Mock PrismaClient
 const mockPrisma = {
   user: {
-    findUnique: vi.fn(),
-    findFirst: vi.fn(),
-    create: vi.fn(),
-    update: vi.fn(),
+    findUnique: jest.fn(),
+    findFirst: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
   },
 };
 
-vi.mock('@prisma/client', () => ({
-  PrismaClient: vi.fn(() => mockPrisma),
+jest.mock('@prisma/client', () => ({
+  PrismaClient: jest.fn(() => mockPrisma),
 }));
 
 // Import after mocking
@@ -21,11 +39,11 @@ import { authService } from '../../../services/auth';
 
 describe('AuthService', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('register', () => {
@@ -166,7 +184,7 @@ describe('AuthService', () => {
     it('should verify valid JWT token', async () => {
       const token = jwt.sign(
         { userId: 'user-123', email: 'test@example.com' },
-        process.env.JWT_SECRET || 'your-secret-key-change-in-production'
+        'test-jwt-secret-that-is-at-least-32-characters'
       );
 
       const payload = await authService.verifyToken(token);

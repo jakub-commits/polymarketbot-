@@ -10,7 +10,15 @@
       "Bash(pnpm dev)",
       "Bash(netstat:*)",
       "Bash(findstr:*)",
-      "Bash(pnpm add:*)"
+      "Bash(pnpm add:*)",
+      "Bash(dir /s /b *.test.ts *.spec.ts *.test.tsx *.spec.tsx)",
+      "Bash(ls -la \"C:\\\\Users\\\\jakub\\\\Projekty\\\\polimarket bot\\\\apps\\\\backend\"\" | grep -E \"package.json)",
+      "Bash(tsconfig \")",
+      "Bash(dir:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm test:*)",
+      "Bash(npx jest:*)",
+      "Bash(taskkill:*)"
     ]
   }
 }

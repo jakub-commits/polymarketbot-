@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { authService } from '../services/auth';
 import { authMiddleware, AuthenticatedRequest } from '../middleware/auth.middleware';
+import { loginRateLimiter, registerRateLimiter } from '../middleware/rate-limiter.middleware';
 import { z } from 'zod';
 
 const router = Router();
@@ -25,7 +26,7 @@ const COOKIE_OPTIONS = {
 };
 
 // Register
-router.post('/register', async (req: Request, res: Response) => {
+router.post('/register', registerRateLimiter, async (req: Request, res: Response) => {
   try {
     const validatedData = registerSchema.parse(req.body);
     const { user, tokens } = await authService.register(validatedData);
@@ -56,7 +57,7 @@ router.post('/register', async (req: Request, res: Response) => {
 });
 
 // Login
-router.post('/login', async (req: Request, res: Response) => {
+router.post('/login', loginRateLimiter, async (req: Request, res: Response) => {
   try {
     const validatedData = loginSchema.parse(req.body);
     const { user, tokens } = await authService.login(validatedData);
@@ -101,7 +102,7 @@ router.post('/logout', authMiddleware, async (req: AuthenticatedRequest, res: Re
       success: true,
       message: 'Logged out successfully',
     });
-  } catch (error) {
+  } catch {
     res.status(500).json({
       success: false,
       error: 'Logout failed',
@@ -135,7 +136,7 @@ router.post('/refresh', async (req: Request, res: Response) => {
       success: true,
       data: { tokens },
     });
-  } catch (error) {
+  } catch {
     // Clear cookies on refresh failure
     res.clearCookie('accessToken');
     res.clearCookie('refreshToken');
@@ -172,7 +173,7 @@ router.get('/me', authMiddleware, async (req: AuthenticatedRequest, res: Respons
       success: true,
       data: { user },
     });
-  } catch (error) {
+  } catch {
     res.status(500).json({
       success: false,
       error: 'Failed to get user',

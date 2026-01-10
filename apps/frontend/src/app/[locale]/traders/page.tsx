@@ -16,6 +16,7 @@ import {
   TrendingUp,
   TrendingDown,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { formatCurrency, formatPercentage, formatWalletAddress } from '@polymarket-bot/shared';
 
 export default function TradersPage() {
@@ -35,16 +36,16 @@ export default function TradersPage() {
   const handleStartCopying = async (id: string) => {
     try {
       await startCopying(id);
-    } catch (error) {
-      console.error('Failed to start copying:', error);
+    } catch {
+      toast.error('Failed to start copying');
     }
   };
 
   const handleStopCopying = async (id: string) => {
     try {
       await stopCopying(id);
-    } catch (error) {
-      console.error('Failed to stop copying:', error);
+    } catch {
+      toast.error('Failed to stop copying');
     }
   };
 
@@ -52,8 +53,8 @@ export default function TradersPage() {
     if (confirm(t('deleteConfirm'))) {
       try {
         await deleteTrader(id);
-      } catch (error) {
-        console.error('Failed to delete trader:', error);
+      } catch {
+        toast.error('Failed to delete trader');
       }
     }
   };
@@ -61,8 +62,8 @@ export default function TradersPage() {
   const handleSync = async (id: string) => {
     try {
       await syncPositions(id);
-    } catch (error) {
-      console.error('Failed to sync positions:', error);
+    } catch {
+      toast.error('Failed to sync positions');
     }
   };
 

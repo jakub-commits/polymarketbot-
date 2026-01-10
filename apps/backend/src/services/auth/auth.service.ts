@@ -2,12 +2,9 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { PrismaClient, User } from '@prisma/client';
 import { logger } from '../../utils/logger';
+import { config } from '../../config';
 
 const prisma = new PrismaClient();
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '15m';
-const REFRESH_TOKEN_EXPIRES_IN = process.env.REFRESH_TOKEN_EXPIRES_IN || '7d';
 
 export interface TokenPayload {
   userId: string;
@@ -77,7 +74,8 @@ class AuthService {
     logger.info({ userId: user.id }, 'User registered successfully');
 
     // Return user without password hash
-    const { passwordHash: _, ...userWithoutPassword } = user;
+    const { passwordHash: _hash, ...userWithoutPassword } = user;
+    void _hash; // Explicitly mark as intentionally unused
     return { user: userWithoutPassword, tokens };
   }
 
@@ -119,7 +117,8 @@ class AuthService {
     logger.info({ userId: user.id }, 'User logged in successfully');
 
     // Return user without password hash
-    const { passwordHash: _, ...userWithoutPassword } = user;
+    const { passwordHash: _hash, ...userWithoutPassword } = user;
+    void _hash; // Explicitly mark as intentionally unused
     return { user: userWithoutPassword, tokens };
   }
 
@@ -136,7 +135,7 @@ class AuthService {
     // Verify refresh token
     let payload: TokenPayload;
     try {
-      payload = jwt.verify(refreshToken, JWT_SECRET) as TokenPayload;
+      payload = jwt.verify(refreshToken, config.jwtSecret) as TokenPayload;
     } catch {
       throw new Error('Invalid refresh token');
     }
@@ -175,25 +174,26 @@ class AuthService {
       return null;
     }
 
-    const { passwordHash: _, ...userWithoutPassword } = user;
+    const { passwordHash: _hash, ...userWithoutPassword } = user;
+    void _hash; // Explicitly mark as intentionally unused
     return userWithoutPassword;
   }
 
   async verifyToken(token: string): Promise<TokenPayload> {
     try {
-      return jwt.verify(token, JWT_SECRET) as TokenPayload;
+      return jwt.verify(token, config.jwtSecret) as TokenPayload;
     } catch {
       throw new Error('Invalid token');
     }
   }
 
   private generateTokens(payload: TokenPayload): AuthTokens {
-    const accessToken = jwt.sign(payload, JWT_SECRET, {
-      expiresIn: JWT_EXPIRES_IN,
+    const accessToken = jwt.sign(payload, config.jwtSecret, {
+      expiresIn: config.jwtExpiresIn as jwt.SignOptions['expiresIn'],
     });
 
-    const refreshToken = jwt.sign(payload, JWT_SECRET, {
-      expiresIn: REFRESH_TOKEN_EXPIRES_IN,
+    const refreshToken = jwt.sign(payload, config.jwtSecret, {
+      expiresIn: config.refreshTokenExpiresIn as jwt.SignOptions['expiresIn'],
     });
 
     return { accessToken, refreshToken };

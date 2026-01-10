@@ -61,13 +61,15 @@ export async function getDashboardStats(
       return sum + pnl;
     }, 0);
 
-    // Win rate
-    const profitableTrades = await prisma.trade.count({
-      where: {
-        status: 'EXECUTED',
-        executedAmount: { gt: prisma.trade.fields.requestedAmount },
-      },
+    // Win rate - fetch executed trades and count profitable ones in memory
+    // (Prisma doesn't support comparing two columns directly in a where clause)
+    const executedTradesForWinRate = await prisma.trade.findMany({
+      where: { status: 'EXECUTED' },
+      select: { executedAmount: true, requestedAmount: true },
     });
+    const profitableTrades = executedTradesForWinRate.filter(
+      (trade) => (trade.executedAmount || 0) > trade.requestedAmount
+    ).length;
     const winRate = executedTrades > 0 ? profitableTrades / executedTrades : 0;
 
     res.json({

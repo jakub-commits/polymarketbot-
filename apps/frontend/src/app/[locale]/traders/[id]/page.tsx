@@ -16,6 +16,7 @@ import {
   TrendingDown,
   ExternalLink,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   formatCurrency,
   formatPercentage,
@@ -37,24 +38,24 @@ export default function TraderDetailPage() {
   const handleStartCopying = async () => {
     try {
       await startCopying(id);
-    } catch (error) {
-      console.error('Failed to start copying:', error);
+    } catch {
+      toast.error('Failed to start copying');
     }
   };
 
   const handleStopCopying = async () => {
     try {
       await stopCopying(id);
-    } catch (error) {
-      console.error('Failed to stop copying:', error);
+    } catch {
+      toast.error('Failed to stop copying');
     }
   };
 
   const handleSync = async () => {
     try {
       await syncPositions(id);
-    } catch (error) {
-      console.error('Failed to sync:', error);
+    } catch {
+      toast.error('Failed to sync positions');
     }
   };
 

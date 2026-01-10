@@ -3,6 +3,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { prisma } from '../config/database.js';
 import { config } from '../config/index.js';
+import { traderMonitorService } from '../services/trader/trader-monitor.service.js';
 
 export async function getSettings(
   req: Request,
@@ -119,15 +120,25 @@ export async function getBotStatus(
       }),
     ]);
 
+    // Get monitor service status to determine if bot is running
+    const monitorStatus = traderMonitorService.getStatus();
+
+    // Bot is considered running if:
+    // 1. TraderMonitorService is actively polling traders, OR
+    // 2. At least one trader has copyEnabled=true AND status='ACTIVE'
+    const isRunning = monitorStatus.isRunning || activeTraders > 0;
+
     res.json({
       success: true,
       data: {
-        isRunning: true, // TODO: Implement actual running state
+        isRunning,
         activeTraders,
         openPositions,
         lastActivity: recentTrades?.createdAt || null,
         uptime: process.uptime(),
         errors24h,
+        // Additional monitoring details
+        monitoredTraders: monitorStatus.monitoredCount,
       },
     });
   } catch (error) {

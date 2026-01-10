@@ -1,7 +1,24 @@
 // Configuration loader
 
 import dotenv from 'dotenv';
+import pino from 'pino';
 import { z } from 'zod';
+
+// Create a bootstrap logger for configuration loading (before main logger is available)
+const bootstrapLogger = pino({
+  level: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
+  transport:
+    process.env.NODE_ENV === 'development'
+      ? {
+          target: 'pino-pretty',
+          options: {
+            colorize: true,
+            translateTime: 'SYS:standard',
+            ignore: 'pid,hostname',
+          },
+        }
+      : undefined,
+});
 
 // Load environment variables
 dotenv.config();
@@ -34,6 +51,11 @@ const configSchema = z.object({
   // Frontend
   frontendUrl: z.string().url().default('http://localhost:3000'),
 
+  // Authentication
+  jwtSecret: z.string().min(32, 'JWT_SECRET must be at least 32 characters long'),
+  jwtExpiresIn: z.string().default('15m'),
+  refreshTokenExpiresIn: z.string().default('7d'),
+
   // Optional
   webhookUrl: z.string().url().optional(),
 });
@@ -56,12 +78,14 @@ function loadConfig(): Config {
     botWalletEncryptedKey: process.env.BOT_WALLET_ENCRYPTED_KEY,
     encryptionKey: process.env.ENCRYPTION_KEY,
     frontendUrl: process.env.FRONTEND_URL,
+    jwtSecret: process.env.JWT_SECRET,
+    jwtExpiresIn: process.env.JWT_EXPIRES_IN,
+    refreshTokenExpiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN,
     webhookUrl: process.env.WEBHOOK_URL,
   });
 
   if (!result.success) {
-    console.error('Configuration validation failed:');
-    console.error(result.error.format());
+    bootstrapLogger.error({ errors: result.error.format() }, 'Configuration validation failed');
     throw new Error('Invalid configuration');
   }
 
